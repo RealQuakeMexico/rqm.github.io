@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Firbas</title>
+    <title>Login Firebase</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         body {
@@ -166,7 +166,8 @@
                 return signInWithEmailAndPassword(auth, email, password);
             })
             .then((userCredential) => {
-                // Inicio de sesión exitoso, redirigir a inicio.html
+                // Inicio de sesión exitoso, guardar el correo electrónico y redirigir a inicio.html
+                localStorage.setItem('userEmail', userCredential.user.email); // Guardar correo en localStorage
                 window.location.href = 'inicio.html';
             })
             .catch((error) => {
@@ -194,7 +195,8 @@
             })
             .then((result) => {
                 const user = result.user;
-                // Inicio de sesión con Google exitoso, redirigir a inicio.html
+                // Inicio de sesión con Google exitoso, guardar el correo y redirigir a inicio.html
+                localStorage.setItem('userEmail', user.email); // Guardar correo en localStorage
                 window.location.href = 'inicio.html';
             })
             .catch((error) => {
@@ -215,7 +217,8 @@
 
             createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    // Registro exitoso, redirigir a inicio.html
+                    // Registro exitoso, guardar el correo y redirigir a inicio.html
+                    localStorage.setItem('userEmail', userCredential.user.email); // Guardar correo en localStorage
                     window.location.href = 'inicio.html';
                 })
                 .catch((error) => {
