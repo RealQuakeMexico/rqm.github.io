@@ -15,28 +15,28 @@
             margin: 0;
         }
 
-        #welcome-box {
-            background-color: #b22222; /* Color carmesí */
+        #welcome-container {
+            background-color: #C0392B; /* Color carmesí */
             color: white;
             padding: 20px;
             border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
         }
 
-        h2 {
+        h1 {
             margin: 0;
         }
 
         a {
             display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
             background-color: #4CAF50;
             color: white;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 4px;
             text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
+            font-weight: bold;
         }
 
         a:hover {
@@ -45,30 +45,28 @@
     </style>
 </head>
 <body>
-    <div id="welcome-box">
-        <h2 id="welcome-message">Bienvenido, [Usuario]</h2>
+    <div id="welcome-container">
+        <h1 id="welcome-message">Bienvenido</h1>
         <a href="go:ubicacion">Selecciona tu ubicación</a>
     </div>
 
-    <script type="module">
-        // Importar las funciones necesarias de Firebase
+    <script>
+        // Inicializar Firebase
         import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        // Inicializar Firebase
         const auth = getAuth();
 
         // Obtener el usuario actual
         const user = auth.currentUser;
 
+        // Mostrar el correo electrónico del usuario
         if (user) {
-            // Si hay un usuario, mostrar su correo electrónico
             const welcomeMessage = document.getElementById('welcome-message');
-            welcomeMessage.textContent = `Bienvenido, ${user.email}`;
+            welcomeMessage.textContent = `Bienvenido ${user.email}`;
         } else {
-            // Si no hay un usuario, redirigir a la página de login
-            window.location.href = 'index.html'; // Cambia esto a tu página de login
+            // Si no hay usuario, redirigir al login
+            window.location.href = 'index.html'; // Asegúrate de que tu archivo de login se llame index.html
         }
     </script>
 </body>
 </html>
-
