@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página de Inicio</title>
+    <title>Inicio - RealQuake</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,60 +13,58 @@
             align-items: center;
             height: 100vh;
             margin: 0;
+            flex-direction: column;
         }
 
-        #welcome-container {
-            background-color: #C0392B; /* Color carmesí */
+        .welcome-box {
+            background-color: #a52a2a; /* Color carmesí */
             color: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             text-align: center;
+            width: 300px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
             margin: 0;
+            font-size: 24px;
         }
 
-        a {
+        a.button {
             display: inline-block;
             background-color: #4CAF50;
             color: white;
             padding: 10px 20px;
-            margin-top: 20px;
             border-radius: 4px;
             text-decoration: none;
-            font-weight: bold;
+            margin-top: 15px;
+            transition: background-color 0.3s;
         }
 
-        a:hover {
+        a.button:hover {
             background-color: #45a049;
         }
     </style>
 </head>
 <body>
-    <div id="welcome-container">
-        <h1 id="welcome-message">Bienvenido</h1>
-        <a href="go:ubicacion">Selecciona tu ubicación</a>
+    <div class="welcome-box">
+        <h1 id="welcome-message">Bienvenido, (correo)</h1>
+        <a href="go:ubicacion" class="button">Selecciona tu ubicación</a>
     </div>
 
     <script>
-        // Inicializar Firebase
-        import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        // Obtener el correo electrónico del usuario autenticado
+        const user = firebase.auth().currentUser;
 
-        const auth = getAuth();
-
-        // Obtener el usuario actual
-        const user = auth.currentUser;
-
-        // Mostrar el correo electrónico del usuario
         if (user) {
-            const welcomeMessage = document.getElementById('welcome-message');
-            welcomeMessage.textContent = `Bienvenido ${user.email}`;
+            // Mostrar el correo electrónico del usuario en el mensaje de bienvenida
+            document.getElementById('welcome-message').textContent = `Bienvenido, ${user.email}`;
         } else {
-            // Si no hay usuario, redirigir al login
-            window.location.href = 'index.html'; // Asegúrate de que tu archivo de login se llame index.html
+            // Si no hay usuario, redirigir a la página de inicio de sesión
+            window.location.href = 'index.html'; // Cambia esto a la página de login si es necesario
         }
     </script>
 </body>
 </html>
+
