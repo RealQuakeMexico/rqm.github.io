@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa en Vivo</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 50vh;
+            width: 100%;
+        }
+        .sismo-proceso, .monitoreando {
+            display: none;
+            position: relative;
+            padding: 20px;
+            color: white;
+        }
+        .sismo-proceso {
+            background-color: #d90000;
+        }
+        .monitoreando {
+            background-color: #808080;
+        }
+        .intensidad-circulo {
+            width: 80px;
+            height: 80px;
+            border: 2px solid white;
+            border-radius: 50%;
+            display: inline-block;
+            text-align: center;
+            line-height: 80px;
+            font-size: 20px;
+            margin-right: 20px;
+        }
+        .intensidad-texto {
+            font-size: 24px;
+        }
+        .email-box, .whatsapp-box {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #404040;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .email-box img, .whatsapp-box img {
+            width: 30px;
+            margin-right: 10px;
+        }
+        .btn-whatsapp {
+            background-color: #25D366;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    
+    <!-- Interfaz de Sismo en Proceso -->
+    <div id="sismoProceso" class="sismo-proceso">
+        <div>
+            <h2>Sismo en proceso</h2>
+            <div class="intensidad-circulo" id="tiempoLlegada">34s</div>
+            <div class="intensidad-texto">Intensidad esperada: <span id="intensidad">Moderado</span></div>
+        </div>
+    </div>
+
+    <!-- Interfaz de Monitoreando -->
+    <div id="monitoreando" class="monitoreando">
+        <h2>No hay sismo en proceso ahora..</h2>
+        <div class="email-box">
+            <img src="user_icon.png" alt="user icon">
+            <span id="userEmail">Email del usuario</span>
+        </div>
+        <div class="whatsapp-box">
+            <img src="whatsapp_icon.png" alt="whatsapp icon">
+            <a href="https://modificable.com" class="btn-whatsapp">Recibe alertas en WhatsApp</a>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFXkT6RRAAXq5y2KcZQi2Xk8v8CsPCAaA",
+            authDomain: "webegepe.firebaseapp.com",
+            databaseURL: "https://webegepe-default-rtdb.firebaseio.com",
+            projectId: "webegepe",
+            storageBucket: "webegepe.appspot.com",
+            messagingSenderId: "221320675108",
+            appId: "1:221320675108:web:b57990cfcfd4820e003db1",
+            measurementId: "G-2NM4T4JMGZ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('userEmail').textContent = user.email;
+            }
+        });
+    </script>
+
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([16.8634, -99.8901], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const epicentros = {
+            "Tapachula": { coords: [14.9, -92.3], active: false },
+            "Tuxtla": { coords: [16.75, -93.1167], active: true },
+            "Puebla": { coords: [19.043, -98.198], active: false }
+            // Más ubicaciones...
+        };
+
+        // Muestra la interfaz según si hay un sismo activo
+        let haySismo = false;
+        for (let key in epicentros) {
+            if (epicentros[key].active) {
+                haySismo = true;
+                mostrarSismo(epicentros[key]);
+                break;
+            }
+        }
+
+        if (!haySismo) {
+            document.getElementById('monitoreando').style.display = 'block';
+        }
+
+        function mostrarSismo(epicentro) {
+            document.getElementById('sismoProceso').style.display = 'block';
+            // Calcular la intensidad según la distancia al epicentro
+            const userLocation = [16.75, -93.1167];  // Ejemplo de ubicación del usuario
+            const distancia = map.distance(userLocation, epicentro.coords);
+            let intensidad = 'Imperceptible';
+
+            if (distancia < 30 * 1000) intensidad = 'Fuerte';
+            else if (distancia < 70 * 1000) intensidad = 'Moderado';
+            else if (distancia < 100 * 1000) intensidad = 'Ligero';
+            
+            document.getElementById('intensidad').textContent = intensidad;
+
+            // Cambiar el color de fondo según la intensidad
+            const colorFondo = {
+                'Imperceptible': '#00ff9e',
+                'Ligero': '#0087ff',
+                'Moderado': '#ffc900',
+                'Fuerte': '#d90000'
+            };
+            document.getElementById('sismoProceso').style.backgroundColor = colorFondo[intensidad];
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Sismos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212; /* Fondo oscuro */
+            color: #e0e0e0; /* Texto claro */
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #ffffff; /* Título en blanco */
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #1e1e1e; /* Fondo de la caja */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333; /* Borde más oscuro */
+        }
+        th {
+            background-color: #333; /* Fondo de encabezados */
+            color: #ffffff; /* Texto de encabezados en blanco */
+        }
+        tr:hover {
+            background-color: #444; /* Color al pasar el mouse */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Lista de Sismos</h1>
+        <table id="earthquake-table">
+            <thead>
+                <tr>
+                    <th>Magnitud</th>
+                    <th>Ubicación</th>
+                    <th>Fecha y Hora</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Los sismos se añadirán aquí dinámicamente -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function fetchEarthquakes() {
+            const usgsUrl = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson';
+
+            const usgsResponse = await fetch(usgsUrl);
+            const usgsData = await usgsResponse.json();
+
+            const tableBody = document.getElementById('earthquake-table').querySelector('tbody');
+
+            // Limitar a un máximo de 20 sismos
+            const maxSismos = 20;
+            const earthquakesToShow = usgsData.features.slice(0, maxSismos);
+
+            earthquakesToShow.forEach(earthquake => {
+                const magnitude = earthquake.properties.mag;
+                const location = earthquake.properties.place;
+                const date = new Date(earthquake.properties.time).toLocaleString();
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${magnitude}</td>
+                    <td>${location}</td>
+                    <td>${date}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        fetchEarthquakes();
+    </script>
+
+</body>
+</html>

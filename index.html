@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Firebase</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+
+        #login-container, #register-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .google-btn {
+            background-color: #4285F4;
+            color: white;
+            margin-top: 15px;
+        }
+
+        /* Estilos del pop-up */
+        #popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        #popup-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+        }
+
+        #popup img {
+            width: 50px;
+            margin-bottom: 10px;
+        }
+
+        .btn-disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+
+        .btn-red {
+            background-color: red;
+            color: white;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-container">
+        <h2>Iniciar sesión</h2>
+        <input type="email" id="login-email" placeholder="Correo electrónico" required>
+        <input type="password" id="login-password" placeholder="Contraseña" required>
+        <button id="login-button">Iniciar sesión</button>
+        <button id="google-login" class="google-btn">Iniciar sesión con Google</button> <!-- Botón para Google Sign-In -->
+        <p>¿No tienes cuenta? <a href="#" id="show-register">Regístrate aquí</a></p>
+        <p>¿Continuar sin cuenta? <a href="#" id="continue-guest">Continuar como invitado</a></p>
+        <div class="error-message" id="error-message"></div> <!-- Div para mostrar mensajes de error -->
+    </div>
+
+    <div id="register-container" style="display: none;">
+        <h2>Registrarse</h2>
+        <input type="email" id="register-email" placeholder="Correo electrónico" required>
+        <input type="password" id="register-password" placeholder="Contraseña" required>
+        <button id="register-button">Registrarse</button>
+        <p>¿Ya tienes cuenta? <a href="#" id="show-login">Iniciar sesión aquí</a></p>
+    </div>
+
+    <!-- Pop-up -->
+    <div id="popup">
+        <div id="popup-content">
+            <img src="alert.png" alt="Logo de RealQuake">
+            <p>En RealQuake, recomendamos a nuestros usuarios registrarse para que tengan acceso a algunas otras funciones. ¿Estás seguro de que quieres seguir como invitado?</p>
+            <button id="register-sure" class="btn-green">Mejor si me registro :)</button>
+            <button id="disable-button" class="btn-red btn-disabled" disabled>Nop, Quiero seguir anónimo (5s)</button>
+        </div>
+    </div>
+
+    <audio id="sad-sound" src="sad.mp3"></audio>
+    <audio id="error-sound" src="error.mp3"></audio>
+
+    <script type="module">
+        // Importar las funciones necesarias de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFXkT6RRAAXq5y2KcZQi2Xk8v8CsPCAaA",
+            authDomain: "webegepe.firebaseapp.com",
+            databaseURL: "https://webegepe-default-rtdb.firebaseio.com",
+            projectId: "webegepe",
+            storageBucket: "webegepe.appspot.com",
+            messagingSenderId: "221320675108",
+            appId: "1:221320675108:web:b57990cfcfd4820e003db1",
+            measurementId: "G-2NM4T4JMGZ"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth(app);
+
+        // Google provider
+        const provider = new GoogleAuthProvider();
+
+        // Elementos del DOM
+        const loginContainer = document.getElementById('login-container');
+        const registerContainer = document.getElementById('register-container');
+        const popup = document.getElementById('popup');
+        const sadSound = document.getElementById('sad-sound');
+        const errorSound = document.getElementById('error-sound');
+        const disableButton = document.getElementById('disable-button');
+        const errorMessage = document.getElementById('error-message');
+
+        // Función para iniciar sesión
+        document.getElementById('login-button').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Inicio de sesión exitoso, redirigir a inicio.html
+                    window.location.href = 'inicio.html';
+                })
+                .catch((error) => {
+                    // Mostrar el mensaje de error
+                    const errorCode = error.code;
+                    const errorMessageText = error.message;
+
+                    errorSound.play();
+
+                    if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
+                        errorMessage.textContent = "Contraseña o gmail incorrecto. Intenta otra vez. Si crees que es un error, envía un mensaje al +525627695887 por WhatsApp.";
+                    } else {
+                        errorMessage.textContent = `Error: ${errorCode} - ${errorMessageText}`;
+                    }
+                });
+        });
+
+        // Función para iniciar sesión con Google
+        document.getElementById('google-login').addEventListener('click', () => {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    const user = result.user;
+                    // Inicio de sesión con Google exitoso, redirigir a inicio.html
+                    window.location.href = 'inicio.html';
+                })
+                .catch((error) => {
+                    // Manejo de errores en el inicio de sesión con Google
+                    const errorCode = error.code;
+                    const errorMessageText = error.message;
+
+                    errorSound.play();
+
+                    errorMessage.textContent = `Error al iniciar sesión con Google: ${errorMessageText}`;
+                });
+        });
+
+        // Función para registrarse
+        document.getElementById('register-button').addEventListener('click', () => {
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Registro exitoso, redirigir a inicio.html
+                    window.location.href = 'inicio.html';
+                })
+                .catch((error) => {
+                    // Mostrar mensaje de error
+                    errorSound.play();
+                    errorMessage.textContent = `Error: ${error.code} - ${error.message}`;
+                });
+        });
+
+        // Continuar como invitado
+        document.getElementById('continue-guest').addEventListener('click', () => {
+            popup.style.display = 'flex'; // Mostrar el pop-up
+            sadSound.play(); // Reproducir el sonido triste
+
+            // Temporizador de 5 segundos para habilitar el botón de seguir anónimo
+            let timeLeft = 5;
+            const countdown = setInterval(() => {
+                timeLeft--;
+                disableButton.textContent = `Nop, Quiero seguir anónimo (${timeLeft}s)`;
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    disableButton.disabled = false; // Habilitar botón
+                    disableButton.classList.remove('btn-disabled');
+                }
+            }, 1000);
+        });
+
+        // Evento para el botón de mejor registro
+        document.getElementById('register-sure').addEventListener('click', () => {
+            popup.style.display = 'none'; // Cerrar el pop-up
+            loginContainer.style.display = 'none'; // Ocultar el login
+            registerContainer.style.display = 'block'; // Mostrar el formulario de registro
+        });
+
+        // Función para mostrar el formulario de inicio de sesión
+        document.getElementById('show-login').addEventListener('click', showLogin);
+        document.getElementById('show-register').addEventListener('click', () => {
+            registerContainer.style.display = 'block'; // Mostrar registro
+            loginContainer.style.display = 'none'; // Ocultar login
+        });
+
+        // Mostrar formulario de inicio de sesión
+        function showLogin() {
+            registerContainer.style.display = 'none';
+            loginContainer.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
